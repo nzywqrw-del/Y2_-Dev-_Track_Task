@@ -2,19 +2,6 @@ import asyncio
 import flet as ft
 import flet_audio as fta
 
-# ══════════════════════════════════════════════════════════════════════════
-#  HOW THIS APP FITS TOGETHER (read this first)
-#
-#  1. state["value"]  is the counter, 0-9. It is the single source of truth.
-#  2. PAGES[n]        holds the text for page n (title + paragraphs).
-#  3. step(change)    changes state["value"], rolls the numeral, and then
-#                     calls show_page(), which puts PAGES[state["value"]]
-#                     into the content area.
-#  4. The content area is an AnimatedSwitcher: whenever its content is
-#     replaced by a new control, it cross-fades from old to new.
-#
-#  So:  button / key  ->  step()  ->  value changes  ->  show_page()  ->  fade
-# ══════════════════════════════════════════════════════════════════════════
 
 # ── Palette ───────────────────────────────────────────────────────────────
 BASE_TOP = "#121214"
@@ -37,11 +24,7 @@ FALLBACK_HEIGHT = 700
 # (0.23, 1, 0.32, 1) stands in for (0.22, 1, 0.36, 1).
 EASE = ft.Animation(500, ft.AnimationCurve.EASE_OUT_QUINT)
 
-# ── NEW: Fonts ────────────────────────────────────────────────────────────
-# Flet downloads these the first time the app runs (needs internet once).
-# Titles use Libre Caslon Display, the same face as the big numeral.
-# If you prefer offline use, download the .ttf files into ./assets and replace
-# each URL with just the file name, e.g. "LibreCaslonDisplay-Regular.ttf".
+
 FONT_SERIF = "Caslon"
 FONT_BODY = "Lato"
 FONTS = {
@@ -49,14 +32,7 @@ FONTS = {
     FONT_BODY: "https://raw.githubusercontent.com/google/fonts/main/ofl/lato/Lato-Light.ttf",
 }
 
-# ══════════════════════════════════════════════════════════════════════════
-#  NEW: PAGE CONTENT  (edit the text here, nothing else needs to change)
-#
-#  PAGES is a list. The position in the list IS the counter value:
-#      PAGES[0] is shown when the counter reads 0, PAGES[1] for 1, and so on.
-#  Each page is a dict with a "title" and a list of "body" paragraphs.
-#  A page with an empty title and an empty body shows only the dial.
-# ══════════════════════════════════════════════════════════════════════════
+
 PAGES = [
     # 0 ──────────────────────────────────────────────────────────────────
     {
@@ -219,7 +195,6 @@ PAGES = [
         ],
     },
     # 9 ──────────────────────────────────────────────────────────────────
-    # Intentionally blank: empty title and body means "dial background only".
     {
         "title": "Hello There",
         "body": [
@@ -241,7 +216,7 @@ assert len(PAGES) == 10, "PAGES needs exactly 10 entries (counter values 0-9)"
 # Drawn as SVG so every digit has the same box and is centered by geometry,
 # not by font metrics. Generated from the font file.
 DIGIT_BOX_W = 550
-DIGIT_BOX_H = 750  # glyph y runs from -20 to 730
+DIGIT_BOX_H = 750
 DIGIT_PATHS = {
     "0": (311, "M56 345Q56 246 90 163Q124 80 182 32Q241 -16 311 -16Q381 -16 440 32Q498 80 532 163Q566 246 566 345Q566 444 532 527Q498 610 440 658Q381 706 311 706Q241 706 182 658Q124 610 90 527Q56 444 56 345ZM311 694Q391 694 430 608Q470 522 470 345Q470 168 430 82Q391 -4 311 -4Q231 -4 192 82Q152 168 152 345Q152 522 192 608Q231 694 311 694Z"),
     "1": (176, "M41 9V0H312V9L220 17V712L215 714Q186 666 145 640Q104 615 40 607V600H143V17Z"),
@@ -326,7 +301,7 @@ async def main(page: ft.Page):
     page.bgcolor = BASE_BOTTOM
     page.fonts = FONTS  # NEW: register the title and body fonts
 
-    # FIX 1: balance=0 is centered (-1 = left, 1 = right). It was 1 (hard right).
+    
     audio = fta.Audio(
         src=url,
         autoplay=False,
@@ -335,8 +310,6 @@ async def main(page: ft.Page):
     )
     page.services.append(audio)
 
-    # FIX 2 (playback): start the track only once, so later clicks never
-    # restart it or stack a second copy on top.
     music = {"started": False}
 
     async def play_music():
@@ -344,12 +317,7 @@ async def main(page: ft.Page):
             music["started"] = True
             await audio.play()
 
-    # ── Shared state ─────────────────────────────────────────────────────
-    # value   : the counter (0-9), also the index into PAGES
-    # front   : which of the two numeral layers is currently visible
-    # digit_h : numeral height in pixels (set by apply_scale)
-    # short   : the window's shorter side in pixels (NEW, used to size text)
-    # hair    : the 1px-style stroke width in pixels (NEW, used by the rule)
+
     state = {
         "value": 0,
         "front": 0,
@@ -391,19 +359,6 @@ async def main(page: ft.Page):
 
     layers = [numeral_layer("0", 1), numeral_layer("0", 0)]
 
-    # ══════════════════════════════════════════════════════════════════════
-    #  NEW: THE CONTENT AREA
-    #
-    #  switcher      : an AnimatedSwitcher. Assign a NEW control to
-    #                  switcher.content and it fades from the old one to the
-    #                  new one by itself.
-    #  page_refs     : remembers the text controls of the page on screen, so
-    #                  style_page() can resize them when the window resizes
-    #                  WITHOUT replacing them (replacing would trigger a fade).
-    #  build_page(n) : turns PAGES[n] into a Column of Text controls.
-    #  style_page()  : sets every size/spacing from the current window size.
-    #  show_page()   : builds the page for the current value and swaps it in.
-    # ══════════════════════════════════════════════════════════════════════
     switcher = ft.AnimatedSwitcher(
         content=ft.Container(),  # empty until show_page() runs the first time
         transition=ft.AnimatedSwitcherTransition.FADE,
@@ -479,24 +434,18 @@ async def main(page: ft.Page):
         switcher.content = build_page(state["value"])
         switcher.update()
 
-    # FIX 3: steps are serialized. Each step reads `front` and mutates the
-    # layers only while holding the lock, so rapid clicks / key repeat can no
-    # longer interleave. The lock is only held for the short "park" window;
-    # the 500ms roll itself runs on the client and does not block the next step.
+
     step_lock = asyncio.Lock()
 
     async def step(change):
         async with step_lock:
-            # 1) Update the counter. The % 10 keeps it looping 0-9.
             state["value"] = (state["value"] + change) % 10
             outgoing = layers[state["front"]]
             incoming = layers[1 - state["front"]]
             state["front"] = 1 - state["front"]
 
-            # 2) NEW: update the content area to match the new number.
             show_page()
 
-            # 3) Park the incoming digit below (or above) without animating.
             incoming.animate_offset = None
             incoming.animate_opacity = None
             incoming.content = digit_image(str(state["value"]))
@@ -505,7 +454,6 @@ async def main(page: ft.Page):
             incoming.update()
             await asyncio.sleep(0.03)
 
-            # 4) Roll: old digit exits, new digit settles into place.
             incoming.animate_offset = EASE
             incoming.animate_opacity = EASE
             incoming.offset = ft.Offset(0, 0)
@@ -532,7 +480,6 @@ async def main(page: ft.Page):
 
     page.on_keyboard_event = on_key
 
-    # ── Controls (sizes are filled in by apply_scale) ────────────────────
     wheel = ft.Container(
         clip_behavior=ft.ClipBehavior.HARD_EDGE,
         content=ft.Stack(controls=layers),
@@ -561,9 +508,6 @@ async def main(page: ft.Page):
         controls=[minus_button, wheel, plus_button],
     )
 
-    # ── Sticky, centered header ──────────────────────────────────────────
-    # FIX 4: pinned to the top of a Stack, drawn after (above) the panel, so
-    # its drop shadow falls over the panel instead of being painted over.
     header = ft.Container(
         left=0,
         right=0,
@@ -573,7 +517,6 @@ async def main(page: ft.Page):
         content=header_row,
     )
 
-    # ── Dial panel: bezel highlight, inset hairline frame, faint guilloché ─
     rings = [ft.Container() for _ in range(RING_COUNT)]
     ring_stack = ft.Stack(alignment=ft.Alignment.CENTER, controls=rings)
 
@@ -589,9 +532,6 @@ async def main(page: ft.Page):
     )
     frame = ft.Container()
 
-    # NEW: the layer that holds the page text. It is stacked ABOVE the rings
-    # and the frame, and its padding (set in apply_scale) keeps the text
-    # inside the inner border.
     content_layer = ft.Container(
         left=0,
         right=0,
@@ -601,8 +541,7 @@ async def main(page: ft.Page):
         content=switcher,
     )
 
-    # Positioned in the Stack just below the header (top is set in apply_scale),
-    # so the layout is identical to the old Column.
+
     panel = ft.Container(
         left=0,
         right=0,
@@ -627,10 +566,7 @@ async def main(page: ft.Page):
         ),
     )
 
-    # ── Scale everything from the current window size ────────────────────
     def current_size():
-        # FIX 5: fall back to the window size, then to defaults, so the UI is
-        # sized even before the first resize event arrives.
         win = getattr(page, "window", None)
         win_w = page.width or getattr(win, "width", None) or FALLBACK_WIDTH
         win_h = page.height or getattr(win, "height", None) or FALLBACK_HEIGHT
@@ -685,7 +621,7 @@ async def main(page: ft.Page):
         margin = short * PANEL_MARGIN_PCT / 100
         panel.margin = ft.Margin.all(margin)
         panel.border_radius = short * PANEL_RADIUS_PCT / 100
-        # 1px inner highlight on the edge, like a machined bezel
+        
         panel.border = ft.Border.all(hair, ft.Colors.with_opacity(0.09, IVORY))
         panel.shadow = ft.BoxShadow(
             blur_radius=short * PANEL_SHADOW_BLUR_PCT / 100,
@@ -711,7 +647,7 @@ async def main(page: ft.Page):
                 hair, ft.Colors.with_opacity(0.035, GOLD_HI)
             )
 
-        # NEW: keep the text inside the inner border, and resize it in place.
+
         content_layer.padding = ft.Padding.all(inset * 3)
         state["short"] = short
         state["hair"] = hair
@@ -721,7 +657,6 @@ async def main(page: ft.Page):
 
     page.on_resize = apply_scale
 
-    # Panel first, header last: the header (and its shadow) paints on top.
     page.add(
         ft.Stack(
             expand=True,
@@ -731,11 +666,9 @@ async def main(page: ft.Page):
     apply_scale()
     show_page()  # NEW: show the first page (counter starts at 0 = History)
 
-    # FIX 5: if the real size wasn't known yet, re-apply once it is.
     await asyncio.sleep(0.25)
     apply_scale()
 
 
 if __name__ == "__main__":
-    # FIX 2: tell Flet where the audio file lives (put the .ogg in ./assets).
     ft.run(main, assets_dir="assets")
