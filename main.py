@@ -221,16 +221,16 @@ PAGES = [
     # 9 ──────────────────────────────────────────────────────────────────
     # Intentionally blank: empty title and body means "dial background only".
     {
-        "title": "hello there", 
+        "title": "Hello There",
         "body": [
-            "if you read this I hope you enjoyed my short horology museum, "
-            "and if you havent I greatly encourage you to do so, its some fascinating stuff",
-            "I have gotten into watches recently so thats the first thing that came to mind, "
-            "a small museum in those lines of code, "
-            "hope this visit hase pleased you",
-            "by:",
-            "Noam Duval"
-        ]
+            "If you're reading this, I hope you enjoyed my little horology "
+            "museum. If you skipped ahead, I'd encourage you to go back "
+            "and visit every page. There's some fascinating stuff in there.",
+            "I've gotten into watches recently, so they were the first thing "
+            "that came to mind: a small museum made of a few lines of code. "
+            "I hope the visit pleased you.",
+            "By Noam Duval",
+        ],
     },
 ]
 
