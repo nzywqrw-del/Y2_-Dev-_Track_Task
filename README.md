@@ -69,12 +69,12 @@ to avoid that.
 
 ## How to run
 
-1. Put the code file (for example `counter.py`) in your project folder.
+1. Put the code file (for example `main.py`) in your project folder.
 2. Create an `assets` folder next to it and place the music file inside:
 
    ```
    project/
-   ├── counter.py
+   ├── main.py
    ├── README.md
    └── assets/
        └── Erik_Satie_-_gymnopedies_-_la_1_ere._lent_et_douloureux.ogg
@@ -83,13 +83,13 @@ to avoid that.
 3. Install the dependencies (see above), then start the app:
 
    ```bash
-   python counter.py
+   python main.py
    ```
 
    Or, using the Flet command line:
 
    ```bash
-   flet run counter.py
+   flet run main.py
    ```
 
 **Controls:** click the circular **-** / **+** buttons, or use the arrow keys.
